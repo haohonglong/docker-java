@@ -1,0 +1,27 @@
+version: '2'
+services:
+  jdk8:
+    image: openjdk:8-jdk-alpine
+    container_name: jdk8
+    volumes:
+      - ./app:/usr/src/myapp
+    working_dir: /usr/src/myapp
+    environment:
+      - TZ=Asia/Shanghai
+    command: "top"
+
+  maven:
+    image: haohonglong/maven:1.0.1
+    container_name: maven
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./app:/tmp
+      - ./conf/maven/settings.xml:/root/.m2/settings.xml:ro
+    networks:
+      - default
+
+networks:
+ default:
+  external:
+   name: dnmp_default
