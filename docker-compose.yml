@@ -22,7 +22,7 @@ services:
       TZ: "$TZ"
     restart: always
     networks:
-      - public
+      - default
 
   maven:
     image: haohonglong/maven:1.0.1
@@ -35,7 +35,7 @@ services:
       - ${SOURCE_DIR}:/tmp
       - ./conf/maven/settings.xml:/root/.m2/settings.xml:ro
     networks:
-      - public
+      - default
 
   mysql:
     image: mysql:5.7
@@ -52,7 +52,7 @@ services:
       - ./conf/mysql/my.cnf:/etc/mysql/my.cnf #配置文件
       - ./logs/mysql:/var/log/mysql #日志文件挂载
     networks:
-      - public
+      - default
 
   redis:
     image: redis:4.0
@@ -60,7 +60,7 @@ services:
     restart: always
     environment:
       - REDIS_PASS_FILE=/run/secrets/redis-password
-      - TZ=Asia/Shanghai
+      - TZ=$TZ
     command: [
       "bash", "-c",
       '
