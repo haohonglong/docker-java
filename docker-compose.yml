@@ -33,7 +33,7 @@ services:
       - "8080:8080"
     volumes:
       - ${SOURCE_DIR}:/tmp
-      - ./conf/maven/settings.xml:/root/.m2/settings.xml:ro
+      - ./conf/maven:/root/.m2
     networks:
       - default
 
