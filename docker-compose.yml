@@ -27,6 +27,8 @@ services:
   maven:
     image: haohonglong/maven:1.0.1
     container_name: maven
+    depends_on:
+      - "mysql"
     ports:
       - "8080:8080"
     volumes:
@@ -51,6 +53,29 @@ services:
       - ./logs/mysql:/var/log/mysql #日志文件挂载
     networks:
       - public
+
+  redis:
+    image: redis:4.0
+    container_name: redis
+    restart: always
+    environment:
+      - REDIS_PASS_FILE=/run/secrets/redis-password
+      - TZ=Asia/Shanghai
+    command: [
+      "bash", "-c",
+      '
+       docker-entrypoint.sh
+       --requirepass "$$(cat $$REDIS_PASS_FILE)"
+      '
+    ]
+    volumes:
+      - ./conf/redis/redis.conf:/usr/local/etc/redis/redis.conf
+      - ./data/redis/data:/data
+      - ./conf/redis/redis-password:/run/secrets/redis-password
+    networks:
+      - default
+    ports:
+      - "6397:6379"
 
 
 networks:
