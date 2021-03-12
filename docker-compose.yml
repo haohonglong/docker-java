@@ -41,23 +41,23 @@ services:
     restart: always
     environment:
       - MYSQL_ROOT_PASSWORD=123456
-      - TZ=${TZ}
+      - TZ=$TZ
     ports:
       - "3306:3306"
     privileged: true
     volumes:
       - ./data/mysql:/var/lib/mysql #数据文件挂载
-      - ./etc/mysql/conf/my.cnf:/etc/mysql/my.cnf #配置文件
-      - ./var/log/mysql:/var/log/mysql #日志文件挂载
+      - ./conf/mysql/my.cnf:/etc/mysql/my.cnf #配置文件
+      - ./logs/mysql:/var/log/mysql #日志文件挂载
     networks:
       - public
 
-#不创建单独的网络，而是用之前已创建的网络,例如：把容器放到已存在的dnmp_default网络上
+
 networks:
   default:
     driver: bridge
-  public:
-    external:
-     name: dnmp_default
+  public: #不创建单独的网络，而是用之前已创建的网络,例如：把容器放到已存在的dnmp_default网络上
+    external: 
+      name: dnmp_default
 
 
