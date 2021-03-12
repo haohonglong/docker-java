@@ -1,14 +1,28 @@
 version: '2'
 services:
-  jdk8:
-    image: openjdk:8-jdk-alpine
-    container_name: jdk8
+  nginx:
+    build:
+      context: ./services/nginx
+      args:
+        NGINX_VERSION: nginx:${NGINX_VERSION}
+        CONTAINER_PACKAGE_URL: ${CONTAINER_PACKAGE_URL}
+        NGINX_INSTALL_APPS: ${NGINX_INSTALL_APPS}
+    container_name: nginx
+    ports:
+      - "${NGINX_HTTP_HOST_PORT}:80"
+      - "${NGINX_HTTPS_HOST_PORT}:443"
     volumes:
-      - ./app:/usr/src/myapp
-    working_dir: /usr/src/myapp
+      - ${SOURCE_DIR}:/www/:rw
+      - ${NGINX_SSL_CERTIFICATE_DIR}:/ssl:rw
+      - ${NGINX_CONFD_DIR}:/etc/nginx/conf.d/:rw
+      - ${NGINX_CONF_FILE}:/etc/nginx/nginx.conf:ro
+      - ${NGINX_FASTCGI_PARAMS}:/etc/nginx/fastcgi_params:ro
+      - ${NGINX_LOG_DIR}:/var/log/nginx/:rw
     environment:
-      - TZ=Asia/Shanghai
-    command: "top"
+      TZ: "$TZ"
+    restart: always
+    networks:
+      - public
 
   maven:
     image: haohonglong/maven:1.0.1
@@ -16,12 +30,34 @@ services:
     ports:
       - "8080:8080"
     volumes:
-      - ./app:/tmp
+      - ${SOURCE_DIR}:/tmp
       - ./conf/maven/settings.xml:/root/.m2/settings.xml:ro
     networks:
-      - default
+      - public
 
+  mysql:
+    image: mysql:5.7
+    container_name: mysql
+    restart: always
+    environment:
+      - MYSQL_ROOT_PASSWORD=123456
+      - TZ=${TZ}
+    ports:
+      - "3306:3306"
+    privileged: true
+    volumes:
+      - ./data/mysql:/var/lib/mysql #数据文件挂载
+      - ./etc/mysql/conf/my.cnf:/etc/mysql/my.cnf #配置文件
+      - ./var/log/mysql:/var/log/mysql #日志文件挂载
+    networks:
+      - public
+
+#不创建单独的网络，而是用之前已创建的网络,例如：把容器放到已存在的dnmp_default网络上
 networks:
- default:
-  external:
-   name: dnmp_default
+  default:
+    driver: bridge
+  public:
+    external:
+     name: dnmp_default
+
+
