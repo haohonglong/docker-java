@@ -1,23 +1,17 @@
 version: '2'
 services:
   nginx:
-    build:
-      context: ./services/nginx
-      args:
-        NGINX_VERSION: nginx:${NGINX_VERSION}
-        CONTAINER_PACKAGE_URL: ${CONTAINER_PACKAGE_URL}
-        NGINX_INSTALL_APPS: ${NGINX_INSTALL_APPS}
-    container_name: nginx
-    ports:
-      - "${NGINX_HTTP_HOST_PORT}:80"
-      - "${NGINX_HTTPS_HOST_PORT}:443"
+    image: nginx:1.19.1-alpine
+    container_name: nginx-java
+    working_dir: /www
     volumes:
       - ${SOURCE_DIR}:/www/:rw
-      - ${NGINX_SSL_CERTIFICATE_DIR}:/ssl:rw
       - ${NGINX_CONFD_DIR}:/etc/nginx/conf.d/:rw
       - ${NGINX_CONF_FILE}:/etc/nginx/nginx.conf:ro
-      - ${NGINX_FASTCGI_PARAMS}:/etc/nginx/fastcgi_params:ro
       - ${NGINX_LOG_DIR}:/var/log/nginx/:rw
+    ports:
+      - "89:80"
+      - "445:443"
     environment:
       TZ: "$TZ"
     restart: always
@@ -27,16 +21,15 @@ services:
   maven:
     image: haohonglong/maven:1.0.1
     container_name: maven
-    depends_on:
-      - "mysql"
     ports:
-      - "8080:8080"
+      - "8090:8080"
+    working_dir: /www
     volumes:
-      - ${SOURCE_DIR}:/tmp
+      - ${SOURCE_DIR}:/www
       - ./conf/maven/settings.xml:/root/.m2/settings.xml:ro
       - ./data/maven/repository:/root/.m2/repository
     networks:
-      - default
+      - public
 
   mysql:
     image: mysql:5.7
@@ -77,6 +70,26 @@ services:
       - default
     ports:
       - "6397:6379"
+
+
+  node1:
+    image: haohonglong/node:1.0
+    container_name: litemall-admin
+    environment:
+      - TZ=$TZ
+    ports:
+      - 9527:9527
+    volumes:
+      - ${SOURCE_DIR}/litemall/litemall-admin:/app
+    working_dir: /app
+    extra_hosts:
+      - "yaf.local:192.168.0.105"
+      - "boda.api:192.168.0.105"
+    networks:
+      - public
+    command: bash
+    tty: true
+
 
 
 networks:
