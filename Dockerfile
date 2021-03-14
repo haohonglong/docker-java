@@ -20,7 +20,7 @@ RUN mkdir -p /usr/share/maven /usr/share/maven/ref \
 
 
 
-WORKDIR /tmp
+WORKDIR /www
 
 EXPOSE 80 8080
 
