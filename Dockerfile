@@ -1,7 +1,7 @@
 ARG JDK_VER=8
 FROM openjdk:${JDK_VER}-jdk-alpine
 
-RUN apk add --no-cache curl vim git bash procps
+RUN apk add --no-cache curl vim git bash procps zip
 
 ARG MAVEN_VERSION=3.6.3
 ARG USER_HOME_DIR="/root"
