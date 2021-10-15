@@ -16,7 +16,27 @@ services:
       TZ: "$TZ"
     restart: always
     networks:
-      - default
+      - public
+
+  oraclejdk8:
+    build:
+      context: ./centos
+    image: haohonglong/oraclejdk8:1.0.1
+    container_name: oraclejdk8
+    ports:
+      - "8093:8080"
+      - "8088:8088"
+    working_dir: /opt/apache-tomcat-9.0.29/webapps
+    volumes:
+      - ${SOURCE_DIR}:/www
+      - ./conf/maven/settings.xml:/root/.m2/settings.xml:ro
+      - ~/.m2/repository:/root/.m2/repository
+      - "./conf/tomcat/server.xml:/opt/apache-tomcat-9.0.29/conf/server.xml"
+    environment:
+      - TZ=$TZ
+    networks:
+      - public
+
 
   maven:
     image: haohonglong/maven:1.0.1
@@ -27,7 +47,37 @@ services:
     volumes:
       - ${SOURCE_DIR}:/www
       - ./conf/maven/settings.xml:/root/.m2/settings.xml:ro
-      - ./data/maven/repository:/root/.m2/repository
+      - ~/.m2/repository:/root/.m2/repository
+    environment:
+      - TZ=$TZ
+    networks:
+      - public
+
+  java2:
+    image: haohonglong/maven:1.0.1
+    container_name: java2
+    ports:
+      - "8091:8080"
+    working_dir: /www
+    volumes:
+      - ${SOURCE_DIR}:/www
+      - ./conf/maven/settings.xml:/root/.m2/settings.xml:ro
+      - ~/.m2/repository:/root/.m2/repository
+    environment:
+      - TZ=$TZ
+    networks:
+      - public
+
+  tomcat:
+    image: tomcat:9.0
+    container_name: tomcat
+    environment:
+      - TZ=Asia/Shanghai
+    ports:
+      - "8089:8088"
+    volumes:
+      - "./conf/tomcat/server.xml:/usr/local/tomcat/conf/server.xml"
+      - "./tomcat/webapps:/usr/local/tomcat/webapps"
     networks:
       - public
 
@@ -50,7 +100,7 @@ services:
 
   redis:
     image: redis:4.0
-    container_name: redis
+    container_name: jredis
     restart: always
     environment:
       - REDIS_PASS_FILE=/run/secrets/redis-password
@@ -82,6 +132,21 @@ services:
     volumes:
       - ${SOURCE_DIR}/litemall/litemall-admin:/app
     working_dir: /app
+    networks:
+      - public
+    command: bash
+    tty: true
+
+  node2:
+    image: haohonglong/node:1.0
+    container_name: litemall-vue
+    environment:
+      - TZ=$TZ
+    ports:
+      - 6255:6255
+    volumes:
+      - ${SOURCE_DIR}/litemall/litemall-vue:/app
+    working_dir: /app
     extra_hosts:
       - "yaf.local:192.168.0.105"
       - "boda.api:192.168.0.105"
@@ -89,7 +154,6 @@ services:
       - public
     command: bash
     tty: true
-
 
 
 networks:
