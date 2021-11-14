@@ -26,12 +26,14 @@ services:
     ports:
       - "8093:8080"
       - "8088:8088"
+      - "5006:5005"
     working_dir: /opt/apache-tomcat-9.0.29/webapps
     volumes:
       - ${SOURCE_DIR}:/www
       - ./conf/maven/settings.xml:/root/.m2/settings.xml:ro
       - ~/.m2/repository:/root/.m2/repository
       - "./conf/tomcat/server.xml:/opt/apache-tomcat-9.0.29/conf/server.xml"
+    command: "java '-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=5005'"
     environment:
       - TZ=$TZ
     networks:
@@ -43,6 +45,7 @@ services:
     container_name: maven
     ports:
       - "8090:8080"
+      - "5005:5005"
     working_dir: /www
     volumes:
       - ${SOURCE_DIR}:/www
