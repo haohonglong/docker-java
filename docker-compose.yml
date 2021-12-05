@@ -30,10 +30,15 @@ services:
     working_dir: /opt/apache-tomcat-9.0.29/webapps
     volumes:
       - ${SOURCE_DIR}:/www
+      - ./tomcat/webapps/tmall:/opt/apache-tomcat-9.0.29/webapps/tmall
+      - ./tomcat/logs:/opt/apache-tomcat-9.0.29/logs
       - ./conf/maven/settings.xml:/root/.m2/settings.xml:ro
       - ~/.m2/repository:/root/.m2/repository
       - "./conf/tomcat/server.xml:/opt/apache-tomcat-9.0.29/conf/server.xml"
-    command: "java '-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=5005'"
+    command: [
+      "bash", "-c",
+      "ln -s /opt/apache-tomcat-9.0.29/webapps /webapps && java -agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=5005"
+    ]
     environment:
       - TZ=$TZ
     networks:
