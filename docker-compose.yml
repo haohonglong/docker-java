@@ -30,14 +30,14 @@ services:
     working_dir: /opt/apache-tomcat-9.0.29/webapps
     volumes:
       - ${SOURCE_DIR}:/www
-      - ./tomcat/webapps/tmall:/opt/apache-tomcat-9.0.29/webapps/tmall
-      - ./tomcat/logs:/opt/apache-tomcat-9.0.29/logs
-      - ./conf/maven/settings.xml:/root/.m2/settings.xml:ro
+      - ${TOMCAT_WEBAPPS}/tmall:/opt/apache-tomcat-9.0.29/webapps/tmall
+      - ${TOMCAT_LOGS}:/opt/apache-tomcat-9.0.29/logs
+      - ${MAVEN_CONF}/settings.xml:/root/.m2/settings.xml:ro
       - ~/.m2/repository:/root/.m2/repository
-      - "./conf/tomcat/server.xml:/opt/apache-tomcat-9.0.29/conf/server.xml"
+      - "${TOMCAT_CONF}/server.xml:/opt/apache-tomcat-9.0.29/conf/server.xml"
     command: [
       "bash", "-c",
-      "ln -s /opt/apache-tomcat-9.0.29/webapps /webapps && java -agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=5005"
+      "init.sh"
     ]
     environment:
       - TZ=$TZ
@@ -54,7 +54,7 @@ services:
     working_dir: /www
     volumes:
       - ${SOURCE_DIR}:/www
-      - ./conf/maven/settings.xml:/root/.m2/settings.xml:ro
+      - ${MAVEN_CONF}/settings.xml:/root/.m2/settings.xml:ro
       - ~/.m2/repository:/root/.m2/repository
     environment:
       - TZ=$TZ
@@ -69,7 +69,7 @@ services:
     working_dir: /www
     volumes:
       - ${SOURCE_DIR}:/www
-      - ./conf/maven/settings.xml:/root/.m2/settings.xml:ro
+      - ${MAVEN_CONF}/settings.xml:/root/.m2/settings.xml:ro
       - ~/.m2/repository:/root/.m2/repository
     environment:
       - TZ=$TZ
@@ -84,8 +84,8 @@ services:
     ports:
       - "8089:8088"
     volumes:
-      - "./conf/tomcat/server.xml:/usr/local/tomcat/conf/server.xml"
-      - "./tomcat/webapps:/usr/local/tomcat/webapps"
+      - "${TOMCAT_CONF}/server.xml:/usr/local/tomcat/conf/server.xml"
+      - "${TOMCAT_WEBAPPS}:/usr/local/tomcat/webapps"
     networks:
       - public
 
@@ -100,9 +100,9 @@ services:
       - "3306:3306"
     privileged: true
     volumes:
-      - ./data/mysql:/var/lib/mysql #数据文件挂载
-      - ./conf/mysql/my.cnf:/etc/mysql/my.cnf #配置文件
-      - ./logs/mysql:/var/log/mysql #日志文件挂载
+      - ./mysql/data:/var/lib/mysql #数据文件挂载
+      - ./mysql/conf/my.cnf:/etc/mysql/my.cnf #配置文件
+      - ./mysql/logs:/var/log/mysql #日志文件挂载
     networks:
       - default
 
@@ -121,9 +121,9 @@ services:
       '
     ]
     volumes:
-      - ./conf/redis/redis.conf:/usr/local/etc/redis/redis.conf
-      - ./data/redis/data:/data
-      - ./conf/redis/redis-password:/run/secrets/redis-password
+      - ./redis/conf/redis.conf:/usr/local/etc/redis/redis.conf
+      - ./redis/conf/redis-password:/run/secrets/redis-password
+      - ./redis/data:/data
     networks:
       - default
     ports:
