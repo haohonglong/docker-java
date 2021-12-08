@@ -13,8 +13,16 @@ ARG BASE_URL=https://apache.osuosl.org/maven/maven-3/${MAVEN_VERSION}/binaries
 
 #基础环境配置
 RUN yum update -y \
-    && yum -y install vim wget git curl \
+    && yum -y install vim wget git curl make \
     && yum clean all && rm -rf /var/cache/yum/*
+
+RUN cd /tmp \
+    && wget http://www.rarlab.com/rar/rarlinux-x64-5.0.0.tar.gz \
+    && tar -zxvf rarlinux-x64-5.0.0.tar.gz \
+    && mv rar /opt/ && cd /opt/rar/ && make && make install \
+    && rm -f /tmp/rarlinux-x64-5.0.0.tar.gz
+
+RUN ln -s /opt/apache-tomcat-9.0.29/webapps /webapps
 
 
 #环境变量设置
@@ -32,4 +40,5 @@ RUN mkdir -p /usr/share/maven /usr/share/maven/ref \
   && rm -f /tmp/apache-maven.tar.gz \
   && ln -s /usr/share/maven/bin/mvn /usr/bin/mvn
 
-
+ENTRYPOINT ["top", "-b"]
+CMD ["-c"]
