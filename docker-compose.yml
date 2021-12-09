@@ -21,7 +21,7 @@ services:
   oraclejdk8:
     build:
       context: ./centos
-    image: haohonglong/oraclejdk8:1.0.1
+    image: haohonglong/oraclejdk8:1.0.2
     container_name: oraclejdk8
     ports:
       - "8093:8080"
@@ -35,10 +35,6 @@ services:
       - ${MAVEN_CONF}/settings.xml:/root/.m2/settings.xml:ro
       - ~/.m2/repository:/root/.m2/repository
       - "${TOMCAT_CONF}/server.xml:/opt/apache-tomcat-9.0.29/conf/server.xml"
-    command: [
-      "bash", "-c",
-      "init.sh"
-    ]
     environment:
       - TZ=$TZ
     networks:
