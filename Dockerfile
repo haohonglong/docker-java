@@ -1,5 +1,5 @@
-ARG JDK_VER=8
-FROM openjdk:${JDK_VER}-jdk-alpine
+ARG JDK_VER=8-jdk-alpine
+FROM openjdk:${JDK_VER}
 
 RUN apk add --no-cache curl vim git bash procps zip
 
@@ -17,8 +17,6 @@ RUN mkdir -p /usr/share/maven /usr/share/maven/ref \
   && tar -xzf /tmp/apache-maven.tar.gz -C /usr/share/maven --strip-components=1 \
   && rm -f /tmp/apache-maven.tar.gz \
   && ln -s /usr/share/maven/bin/mvn /usr/bin/mvn
-
-
 
 WORKDIR /www
 

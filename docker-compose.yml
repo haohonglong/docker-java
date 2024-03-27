@@ -1,28 +1,52 @@
 version: '2'
 services:
-  nginx:
-    image: nginx:1.19.1-alpine
-    container_name: nginx-java
+  java11:
+    build:
+      context: .
+      args:
+        JDK_VER: 19-jdk-alpine
+    image: haohonglong/java:11
+    container_name: java11
+    hostname: java11
+    restart: always
+    ports:
+      - "8081:8080"
+      - "5006:5005"
     working_dir: /www
     volumes:
-      - ${SOURCE_DIR}:/www/:rw
-      - ${NGINX_CONFD_DIR}:/etc/nginx/conf.d/:rw
-      - ${NGINX_CONF_FILE}:/etc/nginx/nginx.conf:ro
-      - ${NGINX_LOG_DIR}:/var/log/nginx/:rw
-    ports:
-      - "89:80"
-      - "445:443"
+      - ${SOURCE_DIR}:/www
+      - ${MAVEN_CONF}/settings.xml:/root/.m2/settings.xml:ro
+      - ${MAVEN_REPOSITORY}:/root/.m2/repository
     environment:
-      TZ: "$TZ"
-    restart: always
+      - TZ=$TZ
     networks:
-      - public
+      - default
+    
+  maven:
+    image: haohonglong/maven:1.0.1
+    container_name: maven
+    hostname: maven
+    restart: always
+    ports:
+      - "8080:8080"
+      - "5005:5005"
+    working_dir: /www
+    extra_hosts:
+      - "blog.admin:$HOST_IP"
+    volumes:
+      - ${SOURCE_DIR}:/www
+      - ${MAVEN_CONF}/settings.xml:/root/.m2/settings.xml:ro
+      - ${MAVEN_REPOSITORY}:/root/.m2/repository
+    environment:
+      - TZ=$TZ
+      - HOSTIP=$HOST_IP
+    networks:
+      - default
 
   oraclejdk8:
-    build:
-      context: ./centos
     image: haohonglong/oraclejdk8:1.0.2
     container_name: oraclejdk8
+    hostname: oraclejdk8
     ports:
       - "8080:8080"
       - "8088:8088"
@@ -30,141 +54,30 @@ services:
     working_dir: /opt/apache-tomcat-9.0.29/webapps
     volumes:
       - ${SOURCE_DIR}:/www
-      - ${TOMCAT_WEBAPPS}/tmall:/opt/apache-tomcat-9.0.29/webapps/tmall
-      - ${TOMCAT_LOGS}:/opt/apache-tomcat-9.0.29/logs
+      - ${TOMCAT}/tmall:/opt/apache-tomcat-9.0.29
       - ${MAVEN_CONF}/settings.xml:/root/.m2/settings.xml:ro
-      - ~/.m2/repository:/root/.m2/repository
-      - "${TOMCAT_CONF}/server.xml:/opt/apache-tomcat-9.0.29/conf/server.xml"
+      - ${MAVEN_REPOSITORY}:/root/.m2/repository
     environment:
       - TZ=$TZ
     networks:
-      - public
-
-
-  maven:
-    image: haohonglong/maven:1.0.1
-    container_name: maven
-    ports:
-      - "8090:8080"
-      - "5005:5005"
-    working_dir: /www
-    volumes:
-      - ${SOURCE_DIR}:/www
-      - ${MAVEN_CONF}/settings.xml:/root/.m2/settings.xml:ro
-      - ~/.m2/repository:/root/.m2/repository
-    environment:
-      - TZ=$TZ
-    networks:
-      - public
-
-  java2:
-    image: haohonglong/maven:1.0.1
-    container_name: java2
-    ports:
-      - "8091:8080"
-    working_dir: /www
-    volumes:
-      - ${SOURCE_DIR}:/www
-      - ${MAVEN_CONF}/settings.xml:/root/.m2/settings.xml:ro
-      - ~/.m2/repository:/root/.m2/repository
-    environment:
-      - TZ=$TZ
-    networks:
-      - public
+      - default
 
   tomcat:
     image: tomcat:9.0
     container_name: tomcat
+    hostname: tomcat
     environment:
       - TZ=Asia/Shanghai
     ports:
-      - "8089:8088"
+      - "8080:8080"
+      - "8081:8081"
     volumes:
-      - "${TOMCAT_CONF}/server.xml:/usr/local/tomcat/conf/server.xml"
-      - "${TOMCAT_WEBAPPS}:/usr/local/tomcat/webapps"
-    networks:
-      - public
-
-  mysql:
-    image: mysql:5.7
-    container_name: mysql
-    restart: always
-    environment:
-      - MYSQL_ROOT_PASSWORD=123456
-      - TZ=$TZ
-    ports:
-      - "3306:3306"
-    privileged: true
-    volumes:
-      - ./mysql/data:/var/lib/mysql #数据文件挂载
-      - ./mysql/conf/my.cnf:/etc/mysql/my.cnf #配置文件
-      - ./mysql/logs:/var/log/mysql #日志文件挂载
+      - "${TOMCAT}:/usr/local/tomcat"
     networks:
       - default
-
-  redis:
-    image: redis:4.0
-    container_name: jredis
-    restart: always
-    environment:
-      - REDIS_PASS_FILE=/run/secrets/redis-password
-      - TZ=$TZ
-    command: [
-      "bash", "-c",
-      '
-       docker-entrypoint.sh
-       --requirepass "$$(cat $$REDIS_PASS_FILE)"
-      '
-    ]
-    volumes:
-      - ./redis/conf/redis.conf:/usr/local/etc/redis/redis.conf
-      - ./redis/conf/redis-password:/run/secrets/redis-password
-      - ./redis/data:/data
-    networks:
-      - default
-    ports:
-      - "6397:6379"
-
-
-  node1:
-    image: haohonglong/node:1.0
-    container_name: litemall-admin
-    environment:
-      - TZ=$TZ
-    ports:
-      - 9527:9527
-    volumes:
-      - ${SOURCE_DIR}/litemall/litemall-admin:/app
-    working_dir: /app
-    networks:
-      - public
-    command: bash
-    tty: true
-
-  node2:
-    image: haohonglong/node:1.0
-    container_name: litemall-vue
-    environment:
-      - TZ=$TZ
-    ports:
-      - 6255:6255
-    volumes:
-      - ${SOURCE_DIR}/litemall/litemall-vue:/app
-    working_dir: /app
-    extra_hosts:
-      - "yaf.local:192.168.0.105"
-      - "boda.api:192.168.0.105"
-    networks:
-      - public
-    command: bash
-    tty: true
-
 
 networks:
   default:
     driver: bridge
-  public: #不创建单独的网络，而是用之前已创建的网络,例如：把容器放到已存在的dnmp_default网络上
-    external: 
-      name: dnmp_default
 
 
