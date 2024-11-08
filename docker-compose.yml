@@ -21,7 +21,30 @@ services:
       - TZ=$TZ
     networks:
       - default
-    
+  
+  sdkman:
+    image: haohonglong/sdkman:1.0
+    container_name: sdkman
+    hostname: sdkman
+    restart: always
+    ports:
+      - "8081:8080"
+      - "5006:5005"
+    working_dir: /www
+    extra_hosts:
+      - "blog.admin:$HOST_IP"
+    volumes:
+      - ${SOURCE_DIR}:/www
+      - /www/lamborghiniJS/LAM2-demos/brandhall_vue:/www/brandhall_vue
+      - ${MAVEN_CONF}/settings.xml:/root/.m2/settings.xml:ro
+      - ${MAVEN_REPOSITORY}:/root/.m2/repository
+    environment:
+      - TZ=$TZ
+      - HOSTIP=$HOST_IP
+    networks:
+      - default
+  
+  
   maven:
     image: haohonglong/maven:1.0.1
     container_name: maven
@@ -35,6 +58,7 @@ services:
       - "blog.admin:$HOST_IP"
     volumes:
       - ${SOURCE_DIR}:/www
+      - /www/lamborghiniJS/LAM2-demos/brandhall_vue:/www/brandhall_vue
       - ${MAVEN_CONF}/settings.xml:/root/.m2/settings.xml:ro
       - ${MAVEN_REPOSITORY}:/root/.m2/repository
     environment:

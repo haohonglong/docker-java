@@ -1,0 +1,63 @@
+services:
+  shopizer-db: 
+    environment:
+      - MYSQL_ROOT_PASSWORD=123456
+      - MYSQL_DATABASE=SALESMANAGER
+      - MYSQL_USER=lam
+      - MYSQL_PASSWORD=123456
+    image: mysql/mysql-server:8.0.28
+    container_name: shopizer-db
+    networks:
+      - shopizer-network
+    ports: 
+      - "3307:3306"
+    volumes: 
+      - $PWD/db:/var/lib/mysql
+  shopizer:
+    depends_on: 
+      - shopizer-db 
+    image: shopizerecomm/shopizer:latest
+    container_name: shopizer
+    environment:
+    - "SPRING_PROFILES_ACTIVE=mysql"
+    - "db.jdbcUrl=jdbc:mysql://192.168.33.10:3307/SALESMANAGER?autoReconnect=true&useUnicode=true&characterEncoding=UTF-8"
+    - "db.user=lam"
+    - "db.password=123456"
+    - "elasticsearch.security.password=NOTREQUIRED"
+    - "config.cms.contentUrl=http://192.168.33.10:8081"
+    - "config.cms.method=default"
+    - "elasticsearch.server.host=http://192.168.33.10"
+    - "elasticsearch.server.port=9200"
+    mem_limit: 2048m
+    networks:
+      - shopizer-network
+    links: 
+      - shopizer-db
+    ports: 
+      - "8081:8080"
+    volumes:
+      - $PWD/app/shopizer:/files
+  shopizer-admin:
+    image: shopizerecomm/shopizer-admin:latest
+    container_name: shopizer-admin
+    environment: 
+    - "APP_BASE_URL=http://192.168.33.10:8081/api"
+    networks:
+      - shopizer-network
+    ports: 
+      - "3007:80"
+  shopizer-shop: 
+    image: shopizerecomm/shopizer-shop-reactjs:latest
+    container_name: shopizer-shop
+    environment: 
+    - "APP_MERCHANT=DEFAULT"
+    - "APP_BASE_URL=http://192.168.33.10:8081"
+    networks:
+      - shopizer-network
+    ports: 
+      - "3008:80"
+version: "2.2"
+
+networks:
+  shopizer-network:
+
