@@ -23,6 +23,8 @@ services:
       - default
   
   sdkman:
+    build:
+      context: ./sdkman
     image: haohonglong/sdkman:1.0
     container_name: sdkman
     hostname: sdkman
